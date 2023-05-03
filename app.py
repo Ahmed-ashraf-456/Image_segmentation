@@ -5,7 +5,9 @@ from streamlit_option_menu import option_menu
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-\
+import cv2
+import matplotlib.pyplot as plt
+from segmantation_using_region_growing import *
 
 
 # set page layout to wide
@@ -58,7 +60,10 @@ def body():
         elif which_page=="K-Means Segmentation":
             print("call")
         elif which_page=="Region Growing Segmentation":
-            print("call")
+            seeds = [[200, 300], [300, 295], [310, 350]]
+            segment_image_class = RegionGrower(img_original,seeds,6)
+            segmented_RegGrow = segment_image_class.fit()
+            plt.imshow(segmented_RegGrow)
         elif which_page=="Agglomerative Segmentation":
             print("call")
 
