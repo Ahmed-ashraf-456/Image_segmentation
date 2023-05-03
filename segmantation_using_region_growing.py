@@ -1,5 +1,6 @@
 
 import numpy as np
+import matplotlib.image as mpimg
 class RegionGrower:
     def __init__(self, img, seeds, thresh, p=1):
         self.img = img
@@ -36,4 +37,5 @@ class RegionGrower:
                 if grayDiff < self.thresh and self.seed_mark[tmpX, tmpY] == 0:
                     self.seed_mark[tmpX, tmpY] = self.label
                     seed_list.append([tmpX, tmpY])
+        saved = mpimg.imsave("output.png", self.seed_mark)
         return self.seed_mark

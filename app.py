@@ -40,18 +40,21 @@ def body():
 
     if file:
         # option to choose between the gray scale or the RGB
-        with st.sidebar:
-            if(segmentation_pages):
-                luv_checkbox = st.checkbox(key="luv_checkbox", label="LUV")
-                num_clusters = st.slider("Number Of Clusters", min_value=2,max_value=10, value=5)
-                threshold = st.slider("Threshold")
-                max_iterations=st.slider("Maximum iterations", min_value=2,max_value=100, value=5)
+        if which_page != "Region Growing Segmentation":
+            with st.sidebar:
+                if(segmentation_pages):
+                    luv_checkbox = st.checkbox(key="luv_checkbox", label="LUV")
+                    num_clusters = st.slider("Number Of Clusters", min_value=2,max_value=10, value=5)
+                    threshold = st.slider("Threshold")
+                    max_iterations=st.slider("Maximum iterations", min_value=2,max_value=100, value=5)
+                    
 
         with col1:  # first part of the image for displaying the original image
             st.header("Original Image")
             # here we made a specific location for uploading the images and it is the relative folder images
             img_original = cv2.imread(file.name)
-            img_original=cv2.resize(img_original,(300,300))
+            if not segmentation_pages:
+                img_original=cv2.resize(img_original,(300,300))
             img_original = cv2.cvtColor(img_original, cv2.COLOR_BGR2RGB)
             st.image(img_original, use_column_width=True)
 
@@ -64,8 +67,6 @@ def body():
             optionIndex=1
         elif which_page=="Spectral Thresholding":
             optionIndex=2
-        # elif which_page=="Local Thresholding":
-        #     print("call")
         elif which_page=="K-Means Segmentation":
             if luv_checkbox:
                 output_img, labels=kmeans(img_original, k=5, max_iter=50, luv=True)
@@ -75,7 +76,7 @@ def body():
 
         elif which_page=="Region Growing Segmentation":
             seeds = [[200, 300], [300, 295], [310, 350]]
-            segment_image_class = RegionGrower(img_original,seeds,6)
+            segment_image_class = RegionGrower(cv2.cvtColor(img_original, cv2.COLOR_BGR2GRAY), seeds, 6)
             output_img = segment_image_class.fit()
         elif which_page=="Agglomerative Segmentation":
             if luv_checkbox:
@@ -86,19 +87,14 @@ def body():
         else:
             #Mean Shift Segmentation
             if luv_checkbox:
-                output_img, labels=mean_shift(img_original, k=5, max_iter=50, luv=True)
+                output_img = mean_shift(img_original, threshold=30, luv=True)
 
             else:
-                output_img, labels=mean_shift(img_original, k=5, max_iter=50, luv=False)
+                output_img = mean_shift(img_original, threshold=30, luv=False)
                 
         if (not segmentation_pages):
-            th.Global_threshold(img_original.copy(),thresholdType[optionIndex])
-        else :
-            if luv_checkbox:
-                output_img= mean_shift(img_original, threshold= 30, luv=True)
-
-            else:
-              output_img= mean_shift(img_original, threshold= 30, luv=False)
+            th.Global_threshold(img_original.copy(),
+                                thresholdType[optionIndex])
 
         with col2:
             st.header("Output Image")
