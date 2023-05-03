@@ -127,92 +127,60 @@ class KMeans:
 
 
 class MeanShift:
-    def __init__(self, image: np.ndarray, threshold: int):
-        im=np.copy(image)
+    def __init__(self, source: np.ndarray, threshold: int):
+        im = np.copy(source)
         self.threshold = threshold
         self.current_mean_random = True
         self.current_mean_arr = []
         size = im.shape[0], im.shape[1], 3
-        # initialize output array
         self.output_array = np.zeros(size, dtype=np.uint8)
-        # create feature space
-        self.feature_space = self.create_feature_space(image=im)
+        self.feature_space = self.create_feature_space(source=im)
 
     def run_mean_shift(self):
         while len(self.feature_space) > 0:
-            below_threshold_arr, self.current_mean_arr = self.calculate_euclidean_distance(
-                current_mean_random=self.current_mean_random,
-                threshold=self.threshold)
+            below_threshold_arr, self.current_mean_arr = self.calculate_euclidean_distance(current_mean_random=self.current_mean_random, threshold=self.threshold)
             self.get_new_mean(below_threshold_arr=below_threshold_arr)
+
 
     def get_output(self):
         return self.output_array
 
     @staticmethod
-    def create_feature_space(image: np.ndarray):
-        im=np.copy(image)
+    def create_feature_space(source: np.ndarray):
+        im = np.copy(source)
         rows = im.shape[0]
         columns = im.shape[1]
-        # initialize feature space array
-        feature_space = np.zeros((rows * columns, 5))
+        feature_space = np.zeros((rows*columns, 5))
         counter = 0
         for i in range(rows):
             for j in range(columns):
-                # array to store each pixel's value
                 array = im[i][j]
-                for k in range(5):
-                    if (k >= 0) & (k <= 2):
-                        feature_space[counter][k] = array[k]
-                    else:
-                        if k == 3:
-                            feature_space[counter][k] = i
-                        else:
-                            feature_space[counter][k] = j
+                feature_space[counter][0:3] = array[0:3]
+                feature_space[counter][3] = i
+                feature_space[counter][4] = j
                 counter += 1
-
         return feature_space
 
     def calculate_euclidean_distance(self, current_mean_random: bool, threshold: int):
-        below_threshold_arr = []
-
-        # select a random row from the feature space and make it the current mean
         if current_mean_random:
             current_mean = np.random.randint(0, len(self.feature_space))
             self.current_mean_arr = self.feature_space[current_mean]
 
-        for f_indx, feature in enumerate(self.feature_space):
-            # finding the euclidean distance of the randomly selected row and each other row
-            ecl_dist = euclidean_distance(self.current_mean_arr, feature)
-            # checking if the distance is within the threshold and add these rows to a list 
-            if ecl_dist < threshold:
-                below_threshold_arr.append(f_indx)
+        diff = self.feature_space[:, 0:4] - self.current_mean_arr[0:4]
+        distances = np.linalg.norm(diff, axis=1)
+
+        below_threshold_arr = np.where(distances < threshold)[0]
 
         return below_threshold_arr, self.current_mean_arr
 
     def get_new_mean(self, below_threshold_arr: list):
         iteration = 0.01
-        # calculate the average of each channel and index positions
-        mean_1 = np.mean(self.feature_space[below_threshold_arr][:, 0])
-        mean_2 = np.mean(self.feature_space[below_threshold_arr][:, 1])
-        mean_3 = np.mean(self.feature_space[below_threshold_arr][:, 2])
-        mean_i = np.mean(self.feature_space[below_threshold_arr][:, 3])
-        mean_j = np.mean(self.feature_space[below_threshold_arr][:, 4])
+        mean = np.mean(self.feature_space[below_threshold_arr], axis=0)
+        mean_e_distance = np.linalg.norm(mean[0:4] - self.current_mean_arr[0:4])
 
-        # find the distance of the average values with the current mean
-        mean_e_distance = (euclidean_distance(mean_1, self.current_mean_arr[0]) +
-                           euclidean_distance(mean_2, self.current_mean_arr[1]) +
-                           euclidean_distance(mean_3, self.current_mean_arr[2]) +
-                           euclidean_distance(mean_i, self.current_mean_arr[3]) +
-                           euclidean_distance(mean_j, self.current_mean_arr[4]))
-
-        # If less than iter, find the row that has i, j nearest to mean_i and mean_j
         if mean_e_distance < iteration:
             new_arr = np.zeros((1, 3))
-            new_arr[0][0] = mean_1
-            new_arr[0][1] = mean_2
-            new_arr[0][2] = mean_3
-
-            # color all the rows with the color of the row that has i,j nearest to mean_i and mean_j
+            new_arr[0][0:3] = mean[0:3]
             for i in range(len(below_threshold_arr)):
                 m = int(self.feature_space[below_threshold_arr[i]][3])
                 n = int(self.feature_space[below_threshold_arr[i]][4])
@@ -220,36 +188,112 @@ class MeanShift:
                 self.feature_space[below_threshold_arr[i]][0] = -1
 
             self.current_mean_random = True
-            new_d = np.zeros((len(self.feature_space), 5))
-            counter_i = 0
-
-            for i in range(len(self.feature_space)):
-                if self.feature_space[i][0] != -1:
-                    new_d[counter_i][0] = self.feature_space[i][0]
-                    new_d[counter_i][1] = self.feature_space[i][1]
-                    new_d[counter_i][2] = self.feature_space[i][2]
-                    new_d[counter_i][3] = self.feature_space[i][3]
-                    new_d[counter_i][4] = self.feature_space[i][4]
-                    counter_i += 1
-
-            self.feature_space = np.zeros((counter_i, 5))
-
-            counter_i -= 1
-            for i in range(counter_i):
-                self.feature_space[i][0] = new_d[i][0]
-                self.feature_space[i][1] = new_d[i][1]
-                self.feature_space[i][2] = new_d[i][2]
-                self.feature_space[i][3] = new_d[i][3]
-                self.feature_space[i][4] = new_d[i][4]
+            new_d = self.feature_space[self.feature_space[:, 0] != -1]
+            self.feature_space = new_d
 
         else:
             self.current_mean_random = False
-            self.current_mean_arr[0] = mean_1
-            self.current_mean_arr[1] = mean_2
-            self.current_mean_arr[2] = mean_3
-            self.current_mean_arr[3] = mean_i
-            self.current_mean_arr[4] = mean_j
+            self.current_mean_arr[0:4] = mean[0:4]
+# class MeanShift:
+#     def __init__(self, source: np.ndarray, threshold: int):
+#         im=np.copy(source)
+#         self.threshold = threshold
+#         self.current_mean_random = True
+#         self.current_mean_arr = []
+#         size = im.shape[0], im.shape[1], 3
+#         self.output_array = np.zeros(size, dtype=np.uint8)
+#         self.feature_space = self.create_feature_space(source=im)
+#     def run_mean_shift(self):
+#         while len(self.feature_space) > 0:
+#             below_threshold_arr, self.current_mean_arr = self.calculate_euclidean_distance(
+#                 current_mean_random=self.current_mean_random,
+#                 threshold=self.threshold)
+#             self.get_new_mean(below_threshold_arr=below_threshold_arr)
 
+#     def get_output(self):
+#         return self.output_array
+
+#     @staticmethod
+#     def create_feature_space(source: np.ndarray):
+#         im=np.copy(source)
+#         rows = im.shape[0]
+#         columns = im.shape[1]
+#         feature_space = np.zeros((rows * columns, 5))
+#         counter = 0
+#         for i in range(rows):
+#             for j in range(columns):
+#                 array = im[i][j]
+#                 for k in range(5):
+#                     if (k >= 0) & (k <= 2):
+#                         feature_space[counter][k] = array[k]
+#                     else:
+#                         if k == 3:
+#                             feature_space[counter][k] = i
+#                         else:
+#                             feature_space[counter][k] = j
+#                 counter += 1
+#         return feature_space
+
+#     def calculate_euclidean_distance(self, current_mean_random: bool, threshold: int):
+#         below_threshold_arr = []
+#         if current_mean_random:
+#             current_mean = np.random.randint(0, len(self.feature_space))
+#             self.current_mean_arr = self.feature_space[current_mean]
+#         for f_indx, feature in enumerate(self.feature_space):
+#             ecl_dist = euclidean_distance(self.current_mean_arr, feature)
+#             if ecl_dist < threshold:
+#                 below_threshold_arr.append(f_indx)
+#         return below_threshold_arr, self.current_mean_arr
+
+#     def get_new_mean(self, below_threshold_arr: list):
+    
+#         iteration = 0.01
+#         mean_1 = np.mean(self.feature_space[below_threshold_arr][:, 0])
+#         mean_2 = np.mean(self.feature_space[below_threshold_arr][:, 1])
+#         mean_3 = np.mean(self.feature_space[below_threshold_arr][:, 2])
+#         mean_i = np.mean(self.feature_space[below_threshold_arr][:, 3])
+#         mean_j = np.mean(self.feature_space[below_threshold_arr][:, 4])
+#         mean_e_distance = (euclidean_distance(mean_1, self.current_mean_arr[0]) +
+#                            euclidean_distance(mean_2, self.current_mean_arr[1]) +
+#                            euclidean_distance(mean_3, self.current_mean_arr[2]) +
+#                            euclidean_distance(mean_i, self.current_mean_arr[3]) +
+#                            euclidean_distance(mean_j, self.current_mean_arr[4]))
+#         if mean_e_distance < iteration:
+#             new_arr = np.zeros((1, 3))
+#             new_arr[0][0] = mean_1
+#             new_arr[0][1] = mean_2
+#             new_arr[0][2] = mean_3
+#             for i in range(len(below_threshold_arr)):
+#                 m = int(self.feature_space[below_threshold_arr[i]][3])
+#                 n = int(self.feature_space[below_threshold_arr[i]][4])
+#                 self.output_array[m][n] = new_arr
+#                 self.feature_space[below_threshold_arr[i]][0] = -1
+#             self.current_mean_random = True
+#             new_d = np.zeros((len(self.feature_space), 5))
+#             counter_i = 0
+#             for i in range(len(self.feature_space)):
+#                 if self.feature_space[i][0] != -1:
+#                     new_d[counter_i][0] = self.feature_space[i][0]
+#                     new_d[counter_i][1] = self.feature_space[i][1]
+#                     new_d[counter_i][2] = self.feature_space[i][2]
+#                     new_d[counter_i][3] = self.feature_space[i][3]
+#                     new_d[counter_i][4] = self.feature_space[i][4]
+#                     counter_i += 1
+#             self.feature_space = np.zeros((counter_i, 5))
+#             counter_i -= 1
+#             for i in range(counter_i):
+#                 self.feature_space[i][0] = new_d[i][0]
+#                 self.feature_space[i][1] = new_d[i][1]
+#                 self.feature_space[i][2] = new_d[i][2]
+#                 self.feature_space[i][3] = new_d[i][3]
+#                 self.feature_space[i][4] = new_d[i][4]
+#         else:
+#             self.current_mean_random = False
+#             self.current_mean_arr[0] = mean_1
+#             self.current_mean_arr[1] = mean_2
+#             self.current_mean_arr[2] = mean_3
+#             self.current_mean_arr[3] = mean_i
+#             self.current_mean_arr[4] = mean_j
 
 class AgglomerativeClustering:
     def __init__(self, image: np.ndarray, clusters_numbers: int = 2, initial_k: int = 25):
