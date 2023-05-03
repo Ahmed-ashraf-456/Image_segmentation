@@ -78,7 +78,11 @@ def body():
             segment_image_class = RegionGrower(img_original,seeds,6)
             output_img = segment_image_class.fit()
         elif which_page=="Agglomerative Segmentation":
-            print("call")
+            if luv_checkbox:
+                output_img=agglomerative(img_original, clusters_numbers=5 , luv=True)
+
+            else:
+                output_img=agglomerative(img_original,clusters_numbers=5,  luv=False)
         else:
             #Mean Shift Segmentation
             if luv_checkbox:
