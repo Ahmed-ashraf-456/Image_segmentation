@@ -96,7 +96,7 @@ def body():
         if(not segmentation_pages):
             with col3:
                 st.header("local thresolding ")
-                st.sidebar.header("please wait local thresholding takes about 3-5 minutes")
+                st.sidebar.header("please wait local thresholding takes about 3-5 minutes ☺")
                 th.Local_threshold(img_original,thresh_typ=thresholdType[optionIndex])
                 st.image("outputLocal.png",use_column_width=True)
 
