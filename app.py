@@ -5,7 +5,9 @@ from streamlit_option_menu import option_menu
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-\
+import cv2
+import matplotlib.pyplot as plt
+from segmantation_using_region_growing import *
 
 
 # set page layout to wide
@@ -37,6 +39,8 @@ def body():
                 luv_checkbox = st.checkbox(key="luv_checkbox", label="LUV")
                 num_clusters = st.slider("Number Of Clusters", min_value=2,max_value=10, value=5)
                 threshold = st.slider("Threshold")
+                max_iterations=st.slider("Maximum iterations", min_value=2,max_value=100, value=5)
+
         with col1:  # first part of the image for displaying the original image
             st.header("Original Image")
             # here we made a specific location for uploading the images and it is the relative folder images
@@ -56,7 +60,10 @@ def body():
         elif which_page=="K-Means Segmentation":
             print("call")
         elif which_page=="Region Growing Segmentation":
-            print("call")
+            seeds = [[200, 300], [300, 295], [310, 350]]
+            segment_image_class = RegionGrower(img_original,seeds,6)
+            segmented_RegGrow = segment_image_class.fit()
+            plt.imshow(segmented_RegGrow)
         elif which_page=="Agglomerative Segmentation":
             print("call")
 
