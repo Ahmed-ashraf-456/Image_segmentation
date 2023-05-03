@@ -36,7 +36,7 @@ def Local_threshold(image, block_size=100 , thresh_typ = 'spect'):
         for col in range(0, image.shape[1], block_size):
             mask = image[row:min(row+block_size,image.shape[0]),col:min(col+block_size,image.shape[1])]
             thresh_img[row:min(row+block_size,image.shape[0]),col:min(col+block_size,image.shape[1])] = Global_threshold(mask, thresh_typ)
-    cv2.imwrite("outputLocal",thresh_img)
+    cv2.imwrite("outputLocal.png",thresh_img)
     return thresh_img
 
 
