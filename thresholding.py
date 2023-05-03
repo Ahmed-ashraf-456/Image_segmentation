@@ -3,6 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 def Global_threshold(image , thresh_typ = "Optimal"):
+    # image= cv2.resize(image,(300,300))
     if len(image.shape) > 2:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     thresh_img = np.zeros(image.shape)
@@ -12,7 +13,6 @@ def Global_threshold(image , thresh_typ = "Optimal"):
     elif thresh_typ == "Optimal":
         threshold = optimal_thresholding(image)
         thresh_img = np.uint8(np.where(image > threshold, 255, 0))
-
     elif thresh_typ=='spect':
         threshold1, threshold2 = spectral_threshold(image)
         for row in range(image.shape[0]):
@@ -23,10 +23,12 @@ def Global_threshold(image , thresh_typ = "Optimal"):
                     thresh_img[row, col] = 0
                 else:
                     thresh_img[row, col] = 128
+    cv2.imwrite("output.png",thresh_img)
     return thresh_img
 
 
-def Local_threshold(image, block_size , thresh_typ = 'spect'):
+def Local_threshold(image, block_size=100 , thresh_typ = 'spect'):
+    # image=cv2.resize(image,(300,300))
     if len(image.shape) > 2:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     thresh_img = np.copy(image)
@@ -34,6 +36,7 @@ def Local_threshold(image, block_size , thresh_typ = 'spect'):
         for col in range(0, image.shape[1], block_size):
             mask = image[row:min(row+block_size,image.shape[0]),col:min(col+block_size,image.shape[1])]
             thresh_img[row:min(row+block_size,image.shape[0]),col:min(col+block_size,image.shape[1])] = Global_threshold(mask, thresh_typ)
+    cv2.imwrite("outputLocal",thresh_img)
     return thresh_img
 
 
