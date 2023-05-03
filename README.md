@@ -4,13 +4,12 @@
 
 **Team 14**
 
-
-
-- **After running the code, choose which tab you want, and for running LUV and segmentation clustering:**
+- **After running the code(main.py file) mainwindow will be opened, choose which tab you want, and for running LUV and segmentation clustering:**
 - 1. To map the RGB image to LUV color space, you need to browse for an image by browse button, then click on convert to luv button
 - 2. For Kmeans clustering, browse an image using the browse button and enter clusters number, then you have the ability to choose which space you want to apply the algorithm on (RGB or LUV) (there are two buttons).
-- 3. For meanshift, browse an image using the browse button and enter threshold value, then you have the ability to choose which space you want to apply the algorithm on (RGB or LUV) (there are two buttons).
-- 4. For agglomerative clustering, browse an image using the browse button and enter clusters number, then you have the ability to choose which space you want to apply the algorithm on (RGB or LUV) (there are two buttons).
+- 3. For region growing, browse an image using the browse button and enter threshold value, then click on the segmentation button.
+- 4. For meanshift, browse an image using the browse button and enter threshold value, then you have the ability to choose which space you want to apply the algorithm on (RGB or LUV) (there are two buttons).
+- 5. For Aglloremative clustering, browse an image using the browse button and enter clusters number, then you have the ability to choose which space you want to apply the algorithm on (RGB or LUV) (there are two buttons).
 
 **Note**
 - For all segmentation results, threshold and number of clusters values have a big effect on the 
@@ -20,7 +19,8 @@ result.
  
 **Code Architecture**<br>
 ## Modules: 
-**1. Segmenation.py:** Contains  essential and basic functions used in segmenation algorithms **such as**
+**1. Thresholding:** Contating threshold algorithms implementation [optimal thresholding, otsu and spectral] both local and global. <br>
+**2. Segmenation.py:** Contains  essential and basic functions used in segmenation algorithms **such as**
 - point class for all points attributes such as x, y coordinates <br>
 - class for KMeans Algorithm
 - class for MeanShift Algorithm
@@ -37,8 +37,23 @@ result.
 
 
 
+## 1. Thresholding
+**1. Optimal Thresholding.**
+- Calculate Initial Thresholds Used in Iteration
+- Iterate Till The Threshold Value is Constant Across Two Iterations
+- Apply thresholding using calculated value
+**2. Otsu Thresholding.**
+- Get the threshold with maximum variance between background and foreground
+- Apply thresholding using calculated value
+**3. Spectral Thresholding**
+- we calculate two CDF one for high and the other for low intensties and calculate variance using both.
+- Apply double thresholding using calculated values
 
-## 1. Map from RGB to LUV
+**4. Local Thresholding for the three methods**
+- we divide the image into regions and the number of regions depends on RegionX and RegionY. 
+- apply any of these global thresholding for each region.
+
+## 2. Map from RGB to LUV
 
 **1. Convert( ) RGBToXYZ( ) using the following formulas.**
 
@@ -148,7 +163,7 @@ def __init__(self, K=5, max_iters=100, plot_steps=False):
         self.centroids = [self.X[idx] for idx in random_sample_idxs]
 
 ```
-3. **repeat** 
+3. **repreat** 
 4. **expectation:** Assign each point to its closest centroid.
 5. **Maximization:** Compute new centroid (mean) of each cluster.
 6. **Until:** centroid position doesn't change. 
@@ -237,3 +252,59 @@ def get_new_mean(self, below_threshold_arr: list):
 4. The above process is repeated until the cluster no longer includes extra data point within it.
 5. Once the process is repeated for all data points, we finally reach the clustered data points as if all the points in the sample space reach its corresponding local maximas.
 
+## 3.Region Growing 
+1. 
+
+## 4. Agglomerative Clustering
+1. Make each data point as a single-point cluster.
+```python 
+# Make each data point as a single-point cluster
+        groups = {}
+        d = int(256 / self.initial_k)
+        for i in range(self.initial_k):
+            j = i * d
+            groups[(j, j, j)] = []
+```
+2. Take the two closest distance clusters by single linkage method and make them one clusters.
+```python
+for i, p in enumerate(points):
+            #Take the two closest distance clusters by single linkage method and make them one clusters
+            go = min(groups.keys(), key=lambda c: euclidean_distance(p, c))
+            groups[go].append(p)
+```
+3. Repeat step 2 until there is only one cluster.
+```python 
+while len(self.clusters_list) > self.clusters_num:
+            # Find the closest (most similar) pair of clusters
+            cluster1, cluster2 = min(
+                [(c1, c2) for i, c1 in enumerate(self.clusters_list) for c2 in self.clusters_list[:i]],
+                key=lambda c: clusters_distance_2(c[0], c[1]))
+
+            # Remove the two clusters from the clusters list
+            self.clusters_list = [c for c in self.clusters_list if c != cluster1 and c != cluster2]
+
+            # Merge the two clusters
+            merged_cluster = cluster1 + cluster2
+
+            # Add the merged cluster to the clusters list
+            self.clusters_list.append(merged_cluster)
+```
+4. Create a Dendrogram to visualize the history of groupings.
+5. Find optimal number of clusters from Dendrogram.
+```python 
+def predict_cluster(self, point):
+        
+        # Find cluster number of point
+        
+        # assuming point belongs to clusters that were computed by fit functions
+
+        return self.cluster[tuple(point)]
+
+    def predict_center(self, point):
+        
+        # Find center of the cluster that point belongs to
+        
+        point_cluster_num = self.predict_cluster(point)
+        center = self.centers[point_cluster_num]
+        return center
+```

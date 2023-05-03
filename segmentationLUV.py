@@ -33,6 +33,19 @@ def apply_k_means_luv(source, k=5, max_iter=100):
 
     return segmented_image, labels
 
+def apply_agglomerative_luv(source: np.ndarray, clusters_numbers: int = 2, initial_clusters: int = 25):
+
+    # convert to RGB
+    src = np.copy(source)
+    src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
+    #convert to luv 
+    src = RGB2LUV(src)
+    agglomerative = AgglomerativeClustering(source=src, clusters_numbers=clusters_numbers,
+                                            initial_k=initial_clusters)
+    saved=mpimg.imsave("agg_luv.png", agglomerative.output_image)
+
+    return agglomerative.output_image
+
 
 
 def apply_mean_shift_luv(source: np.ndarray, threshold: int = 60):
@@ -54,23 +67,22 @@ def apply_mean_shift_luv(source: np.ndarray, threshold: int = 60):
 
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    img = cv2.imread('seg-image.png')
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    # segmentedimg,labels= apply_k_means_luv(source=img)
-    segmentedimg,labels= apply_agglomerative_luv(source=img)
+#     img = cv2.imread('seg-image.png')
+#     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#     segmentedimg,labels= apply_k_means_luv(source=img)
 
-    plt.figure()
+#     plt.figure()
 
-    plt.subplot(1, 2, 1)
-    plt.imshow(img_rgb)
-    plt.axis('off')
-    plt.title('Original image')
+#     plt.subplot(1, 2, 1)
+#     plt.imshow(img_rgb)
+#     plt.axis('off')
+#     plt.title('Original image')
 
-    plt.subplot(1, 2, 2)
-    plt.imshow(segmentedimg)
-    plt.axis('off')
-    plt.title(f'Segmented image')
+#     plt.subplot(1, 2, 2)
+#     plt.imshow(segmentedimg)
+#     plt.axis('off')
+#     plt.title(f'Segmented image')
 
-    plt.show()
+#     plt.show()

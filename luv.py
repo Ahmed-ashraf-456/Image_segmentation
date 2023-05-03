@@ -53,3 +53,24 @@ def RGB2LUV(img):
 
     
     return out #return the LUV image as 8 bit image
+# for i in range(5):
+# img = cv2.imread("seg-image.png")
+# cv_im=cv2.cvtColor(img, cv2.COLOR_BGR2LUV)
+# print(cv_im)     
+# img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 
+# cop_img = np.copy(img)
+# luv_img = RGB2LUV(img)
+
+# fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+# ax = axes.ravel()
+
+# ax[0].imshow(cv_im)
+# ax[0].set_title('Original luv Image')
+# ax[0].set_axis_off()
+
+# ax[1].imshow(luv_img )
+# ax[1].set_title('Luv Image')
+# ax[1].axis('image')
+
+# plt.tight_layout()
+# plt.show()

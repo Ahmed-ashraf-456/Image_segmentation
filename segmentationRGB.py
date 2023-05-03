@@ -33,6 +33,19 @@ def apply_k_means_rgb(source, k=5, max_iter=100):
 
     return segmented_image, labels
 
+def apply_agglomerative_rgb(source: np.ndarray, clusters_numbers: int = 2, initial_clusters: int = 25):
+
+    # convert to RGB
+    src = np.copy(source)
+    src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
+    
+    
+    agglomerative = AgglomerativeClustering(source=src, clusters_numbers=clusters_numbers,
+                                            initial_k=initial_clusters)
+    saved=mpimg.imsave("agg_rgb.png", agglomerative.output_image)
+
+    return agglomerative.output_image
+
 
 
 def apply_mean_shift_rgb(source: np.ndarray, threshold: int = 60):
@@ -52,14 +65,33 @@ def apply_mean_shift_rgb(source: np.ndarray, threshold: int = 60):
 
     return output
 
+# def apply_region_growing(source: np.ndarray,threshold):
+    
 
+#     src = np.copy(source)
+    
+#     src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
+#     src = cv2.cvtColor(src, cv2.COLOR_RGB2GRAY)
+#     seeds = []
+
+#     for i in range(3):
+#         #select random x and y as an initial seed(it will differ from each run)
+#         x = np.random.randint(0, src.shape[0])
+#         y = np.random.randint(0, src.shape[1])
+#         seeds.append(Point(x, y))
+#         # seeds = [Point(10, 1), Point(5, 15), Point(100, 150)] # if we chose constant points for each run
+
+#     output_image = regionGrow(src, seeds, threshold)
+#     saved=mpimg.imsave("region_grow.png", output_image,cmap="gray")
+
+#     return output_image
 
 if __name__ == "__main__":
 
     img = cv2.imread('seg-image.png')
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    # segmentedimg,labels= apply_k_means_rgb(source=img)
-    segmentedimg,labels= apply_agglomerative_rgb(source=img)
+    segmentedimg= apply_agglomerative_rgb(source=img, clusters_numbers= 5)
+    # segmentedimg= apply_region_growing(source=img, threshold= 10)
 
     plt.figure()
 
@@ -69,7 +101,7 @@ if __name__ == "__main__":
     plt.title('Original image')
 
     plt.subplot(1, 2, 2)
-    plt.imshow(segmentedimg,cmap="gray")
+    plt.imshow(segmentedimg)
     plt.axis('off')
     plt.title(f'Segmented image')
 

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 from luv import *
-from skimage import io
+
 np.random.seed(42)
 
 
@@ -33,6 +33,47 @@ def select_p(p):
     if p == 1:
         return connects
     
+
+
+# def regionGrow(img, seeds, threshold, p = 1):
+
+#     im=np.copy(img)
+
+#     height, width = im.shape
+
+#     seedMark = np.zeros(im.shape)
+
+#     seedList = []
+
+#     for seed in seeds:
+#         seedList.append(seed)
+#     label = 1
+#     connects = select_p(p)
+
+#     while (len(seedList) > 0):
+#         #Taking (x0, Y0) as the center,
+#         #consider the neighborhood pixels (x, y) of (x0, Y0),
+#         # if (x0, Y0) meets the growth criteria, merge (x, y) and 
+#         # (x0, Y0) in the same region, and push (x, y) onto the stack.
+#         #then repeat till stack is empty
+
+#         currentPoint = seedList.pop(0)
+#         seedMark[currentPoint.x, currentPoint.y] = label
+
+#         for i in range(8):
+#             tmpX = currentPoint.x + connects[i].x
+#             tmpY = currentPoint.y + connects[i].y
+
+#             if tmpX < 0 or tmpY < 0 or tmpX >= height or tmpY >= width:
+#                 continue
+
+#             grayDiff = get_diff(im, currentPoint, Point(tmpX, tmpY))
+
+#             if grayDiff < threshold and seedMark[tmpX, tmpY] == 0:
+#                 seedMark[tmpX, tmpY] = label
+#                 seedList.append(Point(tmpX, tmpY))
+
+#     return seedMark
 
 
 # KMeans Algorithm
@@ -313,3 +354,72 @@ class MeanShift:
             self.current_mean_arr[3] = mean_i
             self.current_mean_arr[4] = mean_j
 
+
+class AgglomerativeClustering:
+    # 
+    def __init__(self, source: np.ndarray, clusters_numbers: int = 2, initial_k: int = 25):
+        
+        self.clusters_num = clusters_numbers
+        self.initial_k = initial_k
+        src = np.copy(source.reshape((-1, 3)))
+
+        self.fit(src)
+
+        self.output_image = [[self.predict_center(list(src)) for src in row] for row in source]
+        self.output_image = np.array(self.output_image, np.uint8)
+
+    def initial_clusters(self, points):
+        # Make each data point as a single-point cluster
+        groups = {}
+        d = int(256 / self.initial_k)
+        for i in range(self.initial_k):
+            j = i * d
+            groups[(j, j, j)] = []
+        for i, p in enumerate(points):
+            #Take the two closest distance clusters by single linkage method and make them one clusters
+            go = min(groups.keys(), key=lambda c: euclidean_distance(p, c))
+            groups[go].append(p)
+        return [g for g in groups.values() if len(g) > 0]
+
+    def fit(self, points):
+        # initially, assign each point to a distinct cluster
+        self.clusters_list = self.initial_clusters(points)
+        while len(self.clusters_list) > self.clusters_num:
+            # Find the closest (most similar) pair of clusters
+            cluster1, cluster2 = min(
+                [(c1, c2) for i, c1 in enumerate(self.clusters_list) for c2 in self.clusters_list[:i]],
+                key=lambda c: clusters_distance_2(c[0], c[1]))
+
+            # Remove the two clusters from the clusters list
+            self.clusters_list = [c for c in self.clusters_list if c != cluster1 and c != cluster2]
+
+            # Merge the two clusters
+            merged_cluster = cluster1 + cluster2
+
+            # Add the merged cluster to the clusters list
+            self.clusters_list.append(merged_cluster)
+
+        self.cluster = {}
+        for cl_num, cl in enumerate(self.clusters_list):
+            for point in cl:
+                self.cluster[tuple(point)] = cl_num
+
+        self.centers = {}
+        for cl_num, cl in enumerate(self.clusters_list):
+            self.centers[cl_num] = np.average(cl, axis=0)
+
+    def predict_cluster(self, point):
+        
+        # Find cluster number of point
+        
+        # assuming point belongs to clusters that were computed by fit functions
+
+        return self.cluster[tuple(point)]
+
+    def predict_center(self, point):
+        
+        # Find center of the cluster that point belongs to
+        
+        point_cluster_num = self.predict_cluster(point)
+        center = self.centers[point_cluster_num]
+        return center
