@@ -76,8 +76,7 @@ def body():
         elif which_page=="Region Growing Segmentation":
             seeds = [[200, 300], [300, 295], [310, 350]]
             segment_image_class = RegionGrower(img_original,seeds,6)
-            segmented_RegGrow = segment_image_class.fit()
-            plt.imshow(segmented_RegGrow)
+            output_img = segment_image_class.fit()
         elif which_page=="Agglomerative Segmentation":
             print("call")
         else:
