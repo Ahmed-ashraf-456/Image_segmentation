@@ -37,6 +37,8 @@ def body():
                 luv_checkbox = st.checkbox(key="luv_checkbox", label="LUV")
                 num_clusters = st.slider("Number Of Clusters", min_value=2,max_value=10, value=5)
                 threshold = st.slider("Threshold")
+                max_iterations=st.slider("Maximum iterations", min_value=2,max_value=100, value=5)
+
         with col1:  # first part of the image for displaying the original image
             st.header("Original Image")
             # here we made a specific location for uploading the images and it is the relative folder images
