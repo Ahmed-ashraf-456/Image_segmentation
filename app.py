@@ -81,10 +81,11 @@ def body():
 
         if (not segmentation_pages):
             th.Global_threshold(img_original.copy(),thresholdType[optionIndex])
-        if luv_checkbox:
+        else :
+            if luv_checkbox:
                 output_img= mean_shift(img_original, threshold= 30, luv=True)
 
-        else:
+            else:
               output_img= mean_shift(img_original, threshold= 30, luv=False)
 
         with col2:
@@ -97,7 +98,7 @@ def body():
                 st.header("local thresolding ")
                 st.sidebar.header("please wait local thresholding takes about 3-5 minutes")
                 th.Local_threshold(img_original,thresh_typ=thresholdType[optionIndex])
-                st.image("outputLocal",use_column_width=True)
+                st.image("outputLocal.png",use_column_width=True)
 
 if __name__ == "__main__":
     body()
