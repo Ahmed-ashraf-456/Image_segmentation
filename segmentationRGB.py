@@ -1,8 +1,6 @@
 from segmentation import KMeans
 from segmentation import AgglomerativeClustering
 from segmentation import MeanShift
-# from segmentation import regionGrow
-# from segmentation import Point
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -38,16 +36,23 @@ def agglomerative(image, clusters_numbers=2, initial_clusters= 25, luv=False):
     saved=mpimg.imsave("output.png", agglomerative.output_image)
     return agglomerative.output_image
 
-def mean_shift(image, threshold= 60, luv=False):
+def mean_shift(image, threshold= 30, luv=False):
+    print("meanshiftstarted")
+
     src = np.copy(image)
     # convert to RGB
     src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
     if(luv):
         src = RGB2LUV(src)
 
-    ms = MeanShift(image=src, threshold=threshold)
+    ms = MeanShift(source=src, threshold=threshold)
+    print("meanshiftstarted")
+
     ms.run_mean_shift()
+    print("meanshiftstarted2")
+
     output = ms.get_output()
+    print("meanshiftended")
     saved=mpimg.imsave("output.png", output)
 
     return output
@@ -74,9 +79,9 @@ def mean_shift(image, threshold= 60, luv=False):
 
 if __name__ == "__main__":
 
-    img = cv2.imread('snf.jpg')
+    img = cv2.imread('./seg-image.png')
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    segmentedimg= agglomerative(image=img, clusters_numbers=5,luv=False)
+    segmentedimg= mean_shift(image=img,luv=False)
     cv2.imshow('image' , img)
     output = cv2.imread('output.png')
 
