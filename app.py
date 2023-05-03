@@ -5,7 +5,14 @@ from streamlit_option_menu import option_menu
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
+import numpy as np
+from luv import RGB2LUV
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from segmentationLUV import *
+from segmentationRGB import *
 import cv2
+import numpy as np
 import matplotlib.pyplot as plt
 from segmantation_using_region_growing import *
 
@@ -69,7 +76,12 @@ def body():
 
         else:
             #Mean Shift Segmentation
-            print("call")
+            if luv_checkbox: 
+                output_img= mean_shift(img_original, threshold= 30, luv=True)
+
+            else: 
+              output_img= mean_shift(img_original, threshold= 30, luv=False)
+
         with col2:
             st.header("Output Image")
             output_img=cv2.imread("output.png")
