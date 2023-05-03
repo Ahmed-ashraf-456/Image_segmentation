@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from luv import RGB2LUV
 
-def kmeans(image, k=5, max_iter=100, luv=False):
+def kmeans(image, k=5, max_iter=50, luv=False):
     img=np.copy(image)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     if(luv):
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     img = cv2.imread('./seg-image.png')
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    segmentedimg= mean_shift(image=img,luv=False)
+    segmentedimg= kmeans(image=img,luv=False)
     cv2.imshow('image' , img)
     output = cv2.imread('output.png')
 
