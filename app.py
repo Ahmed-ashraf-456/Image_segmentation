@@ -67,7 +67,12 @@ def body():
         # elif which_page=="Local Thresholding":
         #     print("call")
         elif which_page=="K-Means Segmentation":
-            print("call")
+            if luv_checkbox:
+                output_img, labels=kmeans(img_original, k=5, max_iter=50, luv=True)
+
+            else:
+                output_img, labels=kmeans(img_original, k=5, max_iter=50, luv=False)
+
         elif which_page=="Region Growing Segmentation":
             seeds = [[200, 300], [300, 295], [310, 350]]
             segment_image_class = RegionGrower(img_original,seeds,6)
@@ -77,8 +82,12 @@ def body():
             print("call")
         else:
             #Mean Shift Segmentation
-            print("call")
+            if luv_checkbox:
+                output_img, labels=mean_shift(img_original, k=5, max_iter=50, luv=True)
 
+            else:
+                output_img, labels=mean_shift(img_original, k=5, max_iter=50, luv=False)
+                
         if (not segmentation_pages):
             th.Global_threshold(img_original.copy(),thresholdType[optionIndex])
         if luv_checkbox:
